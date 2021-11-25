@@ -3,12 +3,10 @@
 import fs from 'fs';
 
 export default class TodoList {
-    args;
-
     constructor(args) {
         this.args = args;
-    }
 
+    }
 
     read(filename) {
         let fileContent;
@@ -21,15 +19,57 @@ export default class TodoList {
         return fileContent;
     }
 
-    list() {
+    write(filename, data) {
+        try {
+            fs.writeFileSync(filename, data);
+        }
+        catch (err) {
+            throw new Error('Sikertelen fájlbevitel.');
+        }
+    }
+
+    getTodosFileName() {
+        const filePath = "data/listOfTodos.json"
+        return filePath;
+    }
+
+    printDescription() {
         console.log(this.read("data/userGuide.txt"));
     }
 
-    readTodoList() {
-        let todoContent = this.read("data/listOfTodos.json");
-        const todoArr = JSON.parse(todoContent);
-        for (let index = 0; index < todoArr.length; index++) {
-            console.log(`${index + 1} - ${todoArr[index]}`);
+    getList() {
+        return JSON.parse(this.read(this.getTodosFileName()));
+    }
+
+    printTodoList() {
+        let todoContent = this.getList();
+        if (todoContent.length === 0) {
+            console.log("Nincs mára tennivalód! :)");
+        } else {
+            for (let index = 0; index < todoContent.length; index++) {
+                console.log(`${index + 1} - ${todoContent[index]}`);
+            }
+        }
+    }
+
+    addTodo(text) {
+        let todoList = this.getList();
+        todoList.push(text);
+        const myJSON = JSON.stringify(todoList);
+        this.write(this.getTodosFileName(), myJSON);
+    }
+
+    runArgument() {
+        switch (this.args[0]) {
+            case ("-l" || "--list"):
+                this.printTodoList();
+                break;
+            case ("-a"):
+                this.addTodo(this.args[1])
+                break;
+            default:
+                this.printDescription();
+                break;
         }
     }
 
@@ -37,12 +77,7 @@ export default class TodoList {
         console.log(string);
     }
 
-
     run() {
-        if (this.args.length === 0) {
-            return this.list();
-        } else if (this.args.includes("-l") || this.args.includes("--list")) {
-            return this.readTodoList();
-        }
+        return this.runArgument();
     }
 }
