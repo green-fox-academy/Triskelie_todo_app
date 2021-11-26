@@ -1,6 +1,7 @@
 'use strict'
 
 import fs from 'fs';
+import Todo from "./Todo.js";
 
 export default class TodoList {
     constructor(args) {
@@ -38,7 +39,14 @@ export default class TodoList {
     }
 
     getList() {
-        return JSON.parse(this.read(this.getTodosFileName()));
+        let rawTodoList = JSON.parse(this.read(this.getTodosFileName()));
+        let convertedTodoList = [];
+        rawTodoList.forEach(element => {
+            if (element.todo != undefined && element.completed != undefined) {
+                convertedTodoList.push(new Todo(element.todo, element.completed));
+            }
+        });
+        return convertedTodoList;
     }
 
     printTodoList() {
@@ -47,30 +55,31 @@ export default class TodoList {
             console.log("Nincs mára tennivalód! :)");
         } else {
             for (let index = 0; index < todoContent.length; index++) {
-                console.log(`${index + 1} - ${todoContent[index]}`);
+                console.log(`${index + 1} - ${todoContent[index].toString()}`);
             }
         }
     }
 
     addTodo(text) {
+        let todo = new Todo(text);
         let todoList = this.getList();
-        todoList.push(text);
+        todoList.push(todo);
         const myJSON = JSON.stringify(todoList);
         this.write(this.getTodosFileName(), myJSON);
     }
 
-    runArgument() {
-        switch (this.args[0]) {
-            case ("-l" || "--list"):
-                this.printTodoList();
-                break;
-            case ("-a"):
-                this.addTodo(this.args[1])
-                break;
-            default:
-                this.printDescription();
-                break;
-        }
+    deleteTodo(index) {
+        let todoList = this.getList();
+        todoList.splice(index - 1, 1);
+        const myJSON = JSON.stringify(todoList);
+        this.write(this.getTodosFileName(), myJSON);
+    }
+
+    setCompleted(index) {
+        let todoList = this.getList();
+        todoList[index - 1].complete();
+        const myJSON = JSON.stringify(todoList);
+        this.write(this.getTodosFileName(), myJSON);
     }
 
     print(string) {
@@ -78,6 +87,22 @@ export default class TodoList {
     }
 
     run() {
-        return this.runArgument();
+        switch (this.args[0]) {
+            case ("-l" || "--list"):
+                this.printTodoList();
+                break;
+            case ("-a"):
+                this.addTodo(this.args[1])
+                break;
+            case ("-r"):
+                this.deleteTodo(this.args[1])
+                break;
+            case ("-c"):
+                this.setCompleted(this.args[1])
+                break;
+            default:
+                this.printDescription();
+                break;
+        }
     }
 }

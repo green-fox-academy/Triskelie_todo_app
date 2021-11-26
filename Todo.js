@@ -6,4 +6,12 @@ export default class Todo {
         this.todo = todo;
         this.completed = completed;
     }
+
+    complete() {
+        this.completed = true;
+    }
+
+    toString() {
+        return `[${this.completed ? 'x' : ' '}] ${this.todo}`;
+    }
 }
